@@ -2,6 +2,10 @@
 import "@adorable.css"
 import "../style.css"
 
+const MAX_WORD_COUNT = 5
+
+const keypad = "flex h(58) bg(#ccc) r(4) font(13) bold bg(--key-bg)"
+
 const help = () => {}
 const statistics = () => {}
 const settings = () => {}
@@ -9,6 +13,41 @@ const settings = () => {}
 const key1 = "QWERTYUIOP".split("")
 const key2 = "ASDFGHJKL".split("")
 const key3 = "ZXCVBNM".split("")
+
+let letters = []
+
+// 글자 입력
+const pushLetter = (letter:string) => {
+  if (letters.length >= MAX_WORD_COUNT) return
+  letters = [...letters, letter]
+}
+
+// 백스페이스 - 글자삭제
+const backspace = () => {
+  letters = letters.slice(0, -1)
+}
+
+// 엔터
+const enter = () => {
+  alert("!")
+}
+
+// 키를 누르면 키입력 전달
+const onkeydown = (event) => {
+  if (event.metaKey || event.ctrlKey || event.altKey) {
+    return
+  }
+
+  if (event.key.length === 1 && event.key.match(/[a-z]/i)) {
+    pushLetter(event.key.toUpperCase())
+  }
+  else if (event.key === "Backspace") {
+    backspace()
+  }
+  else if (event.key === "Enter") {
+    enter()
+  }
+}
 </script>
 
 
@@ -44,9 +83,15 @@ const key3 = "ZXCVBNM".split("")
   <!-- Words -->
   <div class="flex pack">
     <div class="vbox gap(5)">
+      <div class="hbox gap(5)">
+        {#each Array(5) as row, index}
+          <div class="b(2/--color-tone-4) w(62) h(62) pack font(30) bold">{letters[index] ?? ''}</div>
+        {/each}
+      </div>
+
       {#each Array(5) as row}
         <div class="hbox gap(5)">
-          {#each Array(5) as row}
+          {#each Array(5) as row, index}
             <div class="b(2/--color-tone-4) w(62) h(62) pack font(30) bold"></div>
           {/each}
         </div>
@@ -58,24 +103,24 @@ const key3 = "ZXCVBNM".split("")
   <div class="vbox gap(8) p(8)">
     <div class="hbox gap(6)">
       {#each key1 as key}
-        <button class="flex h(58) bg(#ccc) r(4) font(13) bold bg(--key-bg)">{@html key}</button>
+        <button class="{keypad}" tabindex="-1" on:click={() => pushLetter(key)}>{key}</button>
       {/each}
     </div>
 
     <div class="hbox gap(6)">
-      <div class="flex(.5)"/>
+      <div class="flex(.4)"/>
       {#each key2 as key}
-        <button class="flex h(58) bg(#ccc) r(4) font(13) bold bg(--key-bg)">{@html key}</button>
+        <button class="{keypad}" tabindex="-1" on:click={() => pushLetter(key)}>{key}</button>
       {/each}
-      <div class="flex(.5)"/>
+      <div class="flex(.4)"/>
     </div>
 
     <div class="hbox gap(6)">
-      <button class="flex(1.5) h(58) bg(#ccc) r(4) font(13) bold bg(--key-bg) nowrap...">ENTER</button>
+      <button class="{keypad} flex(1.5)" tabindex="-1">ENTER</button>
       {#each key3 as key}
-        <button class="flex h(58) bg(#ccc) r(4) font(13) bold bg(--key-bg)">{@html key}</button>
+        <button class="{keypad}" tabindex="-1" on:click={() => pushLetter(key)}>{key}</button>
       {/each}
-      <button class="flex(1.5) h(58) bg(#ccc) r(4) font(13) bold bg(--key-bg)">
+      <button class="{keypad} flex(1.5)" tabindex="-1" on:click={backspace}>
         <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
           <path fill="var(--color-tone-1)" d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z"></path>
         </svg>
@@ -88,3 +133,5 @@ const key3 = "ZXCVBNM".split("")
 <svelte:head>
   <title>테오의 프론트엔드 - Wordle Challenge</title>
 </svelte:head>
+
+<svelte:window on:keydown={onkeydown}/>
