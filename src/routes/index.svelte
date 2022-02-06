@@ -1,2 +1,12 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+import "@adorable.css"
+import "../style.css"
+</script>
+
+<div class="layer pack">
+  <h1 class="font(36) 700">WORDLE</h1>
+</div>
+
+<svelte:head>
+  <title>테오의 프론트엔드 - Wordle Challenge</title>
+</svelte:head>
