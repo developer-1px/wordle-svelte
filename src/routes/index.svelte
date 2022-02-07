@@ -13,7 +13,7 @@ const key2 = "asdfghjkl".split("")
 const key3 = "zxcvbnm".split("")
 
 //
-// const answer = "teoyu"
+// const answer = "eleve"
 const answer = WORDS[Math.floor(Math.random() * WORDS.length)]
 
 let allLetters = Array(6).fill(null).map(() => [])
@@ -22,24 +22,30 @@ let currentStep = 0
 
 const getCurrentLetters = () => allLetters[currentStep]
 
-const matchWordle = (answer:string, guess:string) => {
+const matchWordle = (s_answer:string, s_guess:string) => {
+  const answer = s_answer.split("")
+  const guess = s_guess.split("")
 
-  return guess.split("").map((char, i) => {
-    const type = (() => {
-      if (char === answer[i]) {
-        return "correct"
-      }
-      else if (answer.includes(char)) {
-        return "present"
-      }
-      return "absent"
-    })()
+  const result = guess.map(char => ({char, type: "absent"}))
 
-    return {
-      char,
-      type,
+  // correct
+  guess.forEach((char, i) => {
+    if (char === answer[i]) {
+      result[i] = {char, type: "correct"}
+      answer[i] = ""
     }
   })
+
+  // present
+  guess.forEach((char, i) => {
+    if (result[i].type === "correct") return
+    if (answer.includes(char)) {
+      result[i] = {char, type: "present"}
+      answer[answer.indexOf(char)] = ""
+    }
+  })
+
+  return result
 }
 
 
@@ -80,6 +86,14 @@ const enter = () => {
 
   // 다음 단계로 이동
   currentStep++
+
+  if (currentStep > MAX_WORD_COUNT) {
+    setTimeout(() => end())
+  }
+}
+
+const end = () => {
+  alert("정답은 " + answer + " 입니다.")
 }
 
 
