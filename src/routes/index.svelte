@@ -3,6 +3,7 @@ import "@adorable.css"
 import "../style.css"
 import Header from "../components/Header.svelte"
 import KeyButton from "../components/KeyButton.svelte"
+import {WORDS} from "../const/5words"
 
 const MAX_WORD_COUNT = 5
 
@@ -12,9 +13,11 @@ const key2 = "asdfghjkl".split("")
 const key3 = "zxcvbnm".split("")
 
 //
-const answer = "teoyu"
+// const answer = "teoyu"
+const answer = WORDS[Math.floor(Math.random() * WORDS.length)]
 
 let allLetters = Array(6).fill(null).map(() => [])
+let matchedLetters = Object.create(null)
 let currentStep = 0
 
 const getCurrentLetters = () => allLetters[currentStep]
@@ -63,10 +66,22 @@ const enter = () => {
     return
   }
 
+  // 입력된 글자를 통해 단어를 찾는다.
   const input = letters.map(({char}) => char).join("")
   allLetters[currentStep] = matchWordle(answer, input)
+
+  // 매칭된 글자를 저장한다.
+  allLetters[currentStep].forEach(({char, type}) => {
+    if (matchedLetters[char] === "correct") {
+      return
+    }
+    matchedLetters[char] = type
+  })
+
+  // 다음 단계로 이동
   currentStep++
 }
+
 
 // 키를 누르면 키입력 전달
 const onkeydown = (event) => {
@@ -112,14 +127,14 @@ const onkeydown = (event) => {
   <div class="vbox gap(8) p(8) uppercase">
     <div class="hbox gap(6)">
       {#each key1 as key}
-        <KeyButton on:click={() => pushLetter(key)}>{key}</KeyButton>
+        <KeyButton on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
       {/each}
     </div>
 
     <div class="hbox gap(6)">
       <div class="flex(.4)"/>
       {#each key2 as key}
-        <KeyButton on:click={() => pushLetter(key)}>{key}</KeyButton>
+        <KeyButton on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
       {/each}
       <div class="flex(.4)"/>
     </div>
@@ -127,7 +142,7 @@ const onkeydown = (event) => {
     <div class="hbox gap(6)">
       <KeyButton class="flex(1.5)" tabindex="-1">ENTER</KeyButton>
       {#each key3 as key}
-        <KeyButton on:click={() => pushLetter(key)}>{key}</KeyButton>
+        <KeyButton on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
       {/each}
       <KeyButton class="flex(1.5)" tabindex="-1" on:click={backspace}>
         <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
