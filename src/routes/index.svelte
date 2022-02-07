@@ -16,18 +16,23 @@ const key3 = "zxcvbnm".split("")
 //
 const answer = "teoyu"
 
+let allLetters = Array(6).fill(null).map(() => [])
+let currentStep = 0
+
+const getCurrentLetters = () => allLetters[currentStep]
+
 const matchWordle = (answer:string, guess:string) => {
 
-  console.log("matchWordle", answer, guess)
-
   return guess.split("").map((char, i) => {
-    let type = "absent"
-    if (char === answer[i]) {
-      type = "correct"
-    }
-    else if (answer.includes(char)) {
-      type = "present"
-    }
+    const type = (() => {
+      if (char === answer[i]) {
+        return "correct"
+      }
+      else if (answer.includes(char)) {
+        return "present"
+      }
+      return "absent"
+    })()
 
     return {
       char,
@@ -36,23 +41,33 @@ const matchWordle = (answer:string, guess:string) => {
   })
 }
 
-let letters = []
 
 // 글자 입력
 const pushLetter = (char:string) => {
-  if (letters.length >= MAX_WORD_COUNT) return
-  letters = [...letters, {char, type: ""}]
+  const letters = getCurrentLetters()
+  if (letters.length >= MAX_WORD_COUNT) {
+    return
+  }
+
+  allLetters[currentStep] = [...letters, {char, type: ""}]
 }
 
 // 백스페이스 - 글자삭제
 const backspace = () => {
-  letters = letters.slice(0, -1)
+  const letters = getCurrentLetters()
+  allLetters[currentStep] = letters.slice(0, -1)
 }
 
 // 엔터
 const enter = () => {
-  if (letters.length < MAX_WORD_COUNT) return
-  letters = matchWordle(answer, letters.map(({char}) => char).join(""))
+  const letters = getCurrentLetters()
+  if (letters.length < MAX_WORD_COUNT) {
+    return
+  }
+
+  const input = letters.map(({char}) => char).join("")
+  allLetters[currentStep] = matchWordle(answer, input)
+  currentStep++
 }
 
 // 키를 누르면 키입력 전달
@@ -106,20 +121,14 @@ const onkeydown = (event) => {
   <!-- Words -->
   <div class="flex pack uppercase">
     <div class="vbox gap(5)">
-      <div class="hbox gap(5)">
-        {#each Array(5) as row, index}
-          <div class="b(2/--color-tone-4) w(62) h(62) pack font(30) bold
+      {#each allLetters as row, step}
+        <div class="hbox gap(5)">
+          {#each Array(5) as _, index}
+            <div class="b(2/--color-tone-4) w(62) h(62) pack font(30) bold
             .absent:bg(--color-absent) .absent:c(#fff) .absent:b(none)
             .correct:bg(--color-correct) .correct:c(#fff) .correct:b(none)
             .present:bg(--color-present) .present:c(#fff) .present:b(none)
-            {letters[index]?.type}">{letters[index]?.char ?? ''}</div>
-        {/each}
-      </div>
-
-      {#each Array(5) as row}
-        <div class="hbox gap(5)">
-          {#each Array(5) as row, index}
-            <div class="b(2/--color-tone-4) w(62) h(62) pack font(30) bold"></div>
+            {row[index]?.type}">{row[index]?.char ?? ''}</div>
           {/each}
         </div>
       {/each}
