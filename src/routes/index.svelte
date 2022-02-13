@@ -1,6 +1,7 @@
 <script lang="ts">
 import "@adorable.css"
 import "../style.css"
+import {fade} from "svelte/transition"
 import Header from "../components/Header.svelte"
 import KeyButton from "../components/KeyButton.svelte"
 import {WORDS} from "../const/5words"
@@ -66,14 +67,30 @@ const backspace = () => {
 }
 
 // 엔터
+let toast = ""
+
+const showToast = (text:string) => {
+  toast = text
+  setTimeout(() => {
+    toast = ""
+  }, 1000)
+}
+
 const enter = () => {
   const letters = getCurrentLetters()
   if (letters.length < MAX_WORD_COUNT) {
     return
   }
 
-  // 입력된 글자를 통해 단어를 찾는다.
   const input = letters.map(({char}) => char).join("")
+
+  // check Not in word list
+  if (!WORDS.includes(input)) {
+    showToast("Not In word list")
+    return
+  }
+
+  // 입력된 글자를 통해 단어를 찾는다.
   allLetters[currentStep] = matchWordle(answer, input)
 
   // 매칭된 글자를 저장한다.
@@ -93,7 +110,7 @@ const enter = () => {
 }
 
 const end = () => {
-  alert("정답은 " + answer + " 입니다.")
+  showToast("정답은 " + answer + " 입니다.")
 }
 
 
@@ -116,12 +133,12 @@ const onkeydown = (event) => {
 </script>
 
 
-<div class="vbox h(100%) w(320~500) m(auto)">
+<div class="vbox h(100%)">
 
   <Header/>
 
   <!-- Words -->
-  <div class="flex pack uppercase">
+  <div class="flex w(320~500) m(auto) pack uppercase">
     <div class="vbox gap(5)">
       {#each allLetters as row, step}
         <div class="hbox gap(5)">
@@ -138,34 +155,31 @@ const onkeydown = (event) => {
   </div>
 
   <!-- Keyboard -->
-  <div class="vbox gap(8) p(8) uppercase">
-    <div class="hbox gap(6)">
-      {#each key1 as key}
-        <KeyButton on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
-      {/each}
-    </div>
+  <div class="w(100%) w(320~500) m(auto) grid grid-template-columns(repeat(20,1fr)) p(8) gap(6) uppercase">
+    {#each key1 as key}
+      <KeyButton class="grid-column(span/2)" on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
+    {/each}
 
-    <div class="hbox gap(6)">
-      <div class="flex(.4)"/>
-      {#each key2 as key}
-        <KeyButton on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
-      {/each}
-      <div class="flex(.4)"/>
-    </div>
+    <div class="grid-column(span/1)"/>
+    {#each key2 as key}
+      <KeyButton class="grid-column(span/2)" on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
+    {/each}
+    <div class="grid-column(span/1)"/>
 
-    <div class="hbox gap(6)">
-      <KeyButton class="flex(1.5)" tabindex="-1">ENTER</KeyButton>
-      {#each key3 as key}
-        <KeyButton on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
-      {/each}
-      <KeyButton class="flex(1.5)" tabindex="-1" on:click={backspace}>
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-          <path fill="var(--color-tone-1)" d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z"></path>
-        </svg>
-      </KeyButton>
-    </div>
+    <KeyButton class="grid-column(span/3)" tabindex="-1">ENTER</KeyButton>
+    {#each key3 as key}
+      <KeyButton class="grid-column(span/2)" on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
+    {/each}
+    <KeyButton class="grid-column(span/3)" tabindex="-1" on:click={backspace}>
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+        <path fill="var(--color-tone-1)" d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z"></path>
+      </svg>
+    </KeyButton>
   </div>
 
+  {#if toast}
+    <div transition:fade={250} class="bg(#000) r(8) c(#fff) bold p(8/12) absolute top(10%) left(50%) translateX(-50%)">{toast}</div>
+  {/if}
 </div>
 
 <svelte:head>
