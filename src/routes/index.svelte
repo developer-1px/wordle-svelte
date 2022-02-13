@@ -1,6 +1,7 @@
 <script lang="ts">
 import "@adorable.css"
 import "../style.css"
+import {fade} from "svelte/transition"
 import Header from "../components/Header.svelte"
 import KeyButton from "../components/KeyButton.svelte"
 import {WORDS} from "../const/5words"
@@ -66,14 +67,30 @@ const backspace = () => {
 }
 
 // 엔터
+let toast = ""
+
+const showToast = (text:string) => {
+  toast = text
+  setTimeout(() => {
+    toast = ""
+  }, 1000)
+}
+
 const enter = () => {
   const letters = getCurrentLetters()
   if (letters.length < MAX_WORD_COUNT) {
     return
   }
 
-  // 입력된 글자를 통해 단어를 찾는다.
   const input = letters.map(({char}) => char).join("")
+
+  // check Not in word list
+  if (!WORDS.includes(input)) {
+    showToast("Not In word list")
+    return
+  }
+
+  // 입력된 글자를 통해 단어를 찾는다.
   allLetters[currentStep] = matchWordle(answer, input)
 
   // 매칭된 글자를 저장한다.
@@ -93,7 +110,7 @@ const enter = () => {
 }
 
 const end = () => {
-  alert("정답은 " + answer + " 입니다.")
+  showToast("정답은 " + answer + " 입니다.")
 }
 
 
@@ -116,12 +133,12 @@ const onkeydown = (event) => {
 </script>
 
 
-<div class="vbox h(100%) w(320~500) m(auto)">
+<div class="vbox h(100%)">
 
   <Header/>
 
   <!-- Words -->
-  <div class="flex pack uppercase">
+  <div class="flex w(320~500) m(auto) pack uppercase">
     <div class="vbox gap(5)">
       {#each allLetters as row, step}
         <div class="hbox gap(5)">
@@ -138,7 +155,7 @@ const onkeydown = (event) => {
   </div>
 
   <!-- Keyboard -->
-  <div class="grid grid-template-columns(repeat(20,1fr)) p(8) gap(6) uppercase">
+  <div class="w(100%) w(320~500) m(auto) grid grid-template-columns(repeat(20,1fr)) p(8) gap(6) uppercase">
     {#each key1 as key}
       <KeyButton class="grid-column(span/2)" on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
     {/each}
@@ -159,6 +176,10 @@ const onkeydown = (event) => {
       </svg>
     </KeyButton>
   </div>
+
+  {#if toast}
+    <div transition:fade={250} class="bg(#000) r(8) c(#fff) bold p(8/12) absolute top(10%) left(50%) translateX(-50%)">{toast}</div>
+  {/if}
 </div>
 
 <svelte:head>
