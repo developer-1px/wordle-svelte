@@ -1,7 +1,7 @@
 <script lang="ts">
-const help = () => {}
-const statistics = () => {}
-const settings = () => {}
+const help = () => alert('아직 구현되지 않은 기능입니다.')
+const statistics = () => alert('아직 구현되지 않은 기능입니다.')
+const settings = () => alert('아직 구현되지 않은 기능입니다.')
 </script>
 
 <div class="hbox(fill) relative h(50) bb(#ccc)">

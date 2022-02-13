@@ -1,28 +1,37 @@
 <script lang="ts">
 import "@adorable.css"
 import "../style.css"
+
 import {fade} from "svelte/transition"
 import Header from "../components/Header.svelte"
 import KeyButton from "../components/KeyButton.svelte"
 import {WORDS} from "../const/5words"
 
+const KEY1 = "qwertyuiop".split("")
+const KEY2 = "asdfghjkl".split("")
+const KEY3 = "zxcvbnm".split("")
+
 const NUM_MAX_WORD_COUNT = 5
 const NUM_TRY_COUNT = 6
 
+enum State {
+  IDLE,
+  IS_ANIMATING,
+  END,
+}
 
-const key1 = "qwertyuiop".split("")
-const key2 = "asdfghjkl".split("")
-const key3 = "zxcvbnm".split("")
+let currentState:State = State.IDLE
 
-//
-// const answer = "eleve"
+// const answer = "world"
 const answer = WORDS[Math.floor(Math.random() * WORDS.length)]
 
 const allLetters = Array(NUM_TRY_COUNT).fill(null).map(() => [])
 const allLetters_animate = Array(NUM_TRY_COUNT).fill("")
 const matchedLetters = Object.create(null)
+
 let currentStep = 0
 
+///
 const getCurrentLetters = () => allLetters[currentStep]
 
 const matchWordle = (s_answer:string, s_guess:string) => {
@@ -68,6 +77,8 @@ const showToast = (text:string, duration = TOAST_DURATION) => {
 
 // 글자 입력
 const pushLetter = (char:string) => {
+  if (currentState !== State.IDLE) return
+
   const letters = getCurrentLetters()
   if (letters.length >= NUM_MAX_WORD_COUNT) {
     return
@@ -76,14 +87,18 @@ const pushLetter = (char:string) => {
   allLetters[currentStep] = [...letters, {char, type: "", animation: "pop"}]
 }
 
-// 백스페이스 - 글자삭제
+// 백스페이스: 글자삭제
 const backspace = () => {
+  if (currentState !== State.IDLE) return
+
   const letters = getCurrentLetters()
   allLetters[currentStep] = letters.slice(0, -1)
 }
 
 // 엔터
 const enter = () => {
+  if (currentState !== State.IDLE) return
+
   const letters = getCurrentLetters()
   if (letters.length < NUM_MAX_WORD_COUNT) {
     return
@@ -99,31 +114,48 @@ const enter = () => {
   }
 
   // 입력된 글자를 통해 단어를 찾는다.
-  allLetters[currentStep] = matchWordle(answer, input)
+  const matched = matchWordle(answer, input)
 
-  // 매칭된 글자를 저장한다.
-  allLetters[currentStep].forEach(({char, type}) => {
-    if (matchedLetters[char] === "correct") {
-      return
-    }
-    matchedLetters[char] = type
+  // filp-in, flip-out animation 적용
+  currentState = State.IS_ANIMATING
+  matched.forEach(({char, type}, i) => {
+    const step = currentStep
+    setTimeout(() => {
+      allLetters[step][i] = {char, type: "pop", animation: "flip-in"}
+      setTimeout(() => allLetters[step][i] = {char, type, animation: "flip-out"}, 250)
+    }, 250 * i)
   })
 
-  // 다음 단계로 이동
-  currentStep++
+  setTimeout(() => {
+    // 매칭된 글자를 저장한다.
+    allLetters[currentStep].forEach(({char, type}) => {
+      if (matchedLetters[char] === "correct") {
+        return
+      }
+      matchedLetters[char] = type
+    })
 
-  if (currentStep > NUM_MAX_WORD_COUNT) {
-    setTimeout(() => end())
-  }
+    // 다음 단계로 이동
+    if (currentStep >= NUM_MAX_WORD_COUNT) {
+      setTimeout(() => end())
+    }
+
+    currentStep++
+    currentState = State.IDLE
+
+  }, 250 * matched.length + 250)
 }
 
 const end = () => {
+  currentState = State.END
   showToast("정답은 " + answer + " 입니다.", TOAST_DURATION_LONG)
 }
 
 
 // 키를 누르면 키입력 전달
 const onkeydown = (event) => {
+  if (currentState !== State.IDLE) return
+
   if (event.metaKey || event.ctrlKey || event.altKey) {
     return
   }
@@ -155,7 +187,7 @@ const onkeydown = (event) => {
             .absent:bg(--color-absent) .absent:c(#fff) .absent:b(none)
             .correct:bg(--color-correct) .correct:c(#fff) .correct:b(none)
             .present:bg(--color-present) .present:c(#fff) .present:b(none)
-            {row[index]?.animation} .pop:b(2/--color-tone-1)
+            {row[index]?.animation} .pop:b(2/--color-tone-2)
             {row[index]?.type}">{row[index]?.char ?? ''}</div>
           {/each}
         </div>
@@ -165,18 +197,18 @@ const onkeydown = (event) => {
 
   <!-- Keyboard -->
   <div class="w(100%) w(320~500) m(auto) grid grid-template-columns(repeat(20,1fr)) p(8) gap(6) uppercase">
-    {#each key1 as key}
+    {#each KEY1 as key}
       <KeyButton class="grid-column(span/2)" on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
     {/each}
 
     <div class="grid-column(span/1)"/>
-    {#each key2 as key}
+    {#each KEY2 as key}
       <KeyButton class="grid-column(span/2)" on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
     {/each}
     <div class="grid-column(span/1)"/>
 
     <KeyButton class="grid-column(span/3)" tabindex="-1">ENTER</KeyButton>
-    {#each key3 as key}
+    {#each KEY3 as key}
       <KeyButton class="grid-column(span/2)" on:click={() => pushLetter(key)} type={matchedLetters[key]}>{key}</KeyButton>
     {/each}
     <KeyButton class="grid-column(span/3)" tabindex="-1" on:click={backspace}>
@@ -202,6 +234,29 @@ const onkeydown = (event) => {
 .shake {
   animation-name:Shake;
   animation-duration:600ms;
+}
+
+@keyframes Shake {
+  10%,
+  90% {
+    transform:translateX(-1px);
+  }
+
+  20%,
+  80% {
+    transform:translateX(2px);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform:translateX(-4px);
+  }
+
+  40%,
+  60% {
+    transform:translateX(4px);
+  }
 }
 
 .bounce {
@@ -230,29 +285,6 @@ const onkeydown = (event) => {
   }
 }
 
-@keyframes Shake {
-  10%,
-  90% {
-    transform:translateX(-1px);
-  }
-
-  20%,
-  80% {
-    transform:translateX(2px);
-  }
-
-  30%,
-  50%,
-  70% {
-    transform:translateX(-4px);
-  }
-
-  40%,
-  60% {
-    transform:translateX(4px);
-  }
-}
-
 .pop {
   animation-name:PopIn;
   animation-duration:100ms;
@@ -270,7 +302,7 @@ const onkeydown = (event) => {
   }
 }
 
-.tile[data-animation='flip-in'] {
+.flip-in {
   animation-name:FlipIn;
   animation-duration:250ms;
   animation-timing-function:ease-in;
@@ -285,7 +317,7 @@ const onkeydown = (event) => {
   }
 }
 
-.tile[data-animation='flip-out'] {
+.flip-out {
   animation-name:FlipOut;
   animation-duration:250ms;
   animation-timing-function:ease-in;
