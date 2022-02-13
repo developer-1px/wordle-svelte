@@ -17,8 +17,8 @@ ol,ul,menu,dir{list-style:none;}
 .\.present\:c\(\#fff\).present, .present .\.present\:c\(\#fff\){color:#fff;}
 .c\(\#fff\){color:#fff;}
 .font\(30\){font-size:30px}
-.font\(32\/-\/2\){font-size:32px;letter-spacing:2px}
 .font\(13\){font-size:13px}
+.font\(32\/-\/2\){font-size:32px;letter-spacing:2px}
 .bold{font-weight:bold;}
 .uppercase{text-transform:uppercase;}
 .text-center{text-align:center;}
@@ -38,8 +38,8 @@ ol,ul,menu,dir{list-style:none;}
 .w\(50\){width:50px;}
 .h\(100\%\){height:100%;}
 .h\(62\){height:62px;}
-.h\(50\){height:50px;}
 .h\(58\){height:58px;}
+.h\(50\){height:50px;}
 .m\(auto\){margin:auto;}
 .p\(8\){padding:8px;}
 .p\(8\/12\){padding:8px 12px;}
