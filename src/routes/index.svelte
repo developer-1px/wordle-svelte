@@ -6,7 +6,8 @@ import Header from "../components/Header.svelte"
 import KeyButton from "../components/KeyButton.svelte"
 import {WORDS} from "../const/5words"
 
-const MAX_WORD_COUNT = 5
+const NUM_MAX_WORD_COUNT = 5
+const NUM_TRY_COUNT = 6
 
 
 const key1 = "qwertyuiop".split("")
@@ -17,8 +18,9 @@ const key3 = "zxcvbnm".split("")
 // const answer = "eleve"
 const answer = WORDS[Math.floor(Math.random() * WORDS.length)]
 
-let allLetters = Array(6).fill(null).map(() => [])
-let matchedLetters = Object.create(null)
+const allLetters = Array(NUM_TRY_COUNT).fill(null).map(() => [])
+const allLetters_animate = Array(NUM_TRY_COUNT).fill("")
+const matchedLetters = Object.create(null)
 let currentStep = 0
 
 const getCurrentLetters = () => allLetters[currentStep]
@@ -49,11 +51,25 @@ const matchWordle = (s_answer:string, s_guess:string) => {
   return result
 }
 
+// 토스트 팝업
+const TOAST_DURATION = 1500
+
+let toast = ""
+let timer:ReturnType<typeof setTimeout>
+
+const showToast = (text:string) => {
+  toast = text
+  clearTimeout(timer)
+  timer = setTimeout(() => {
+    toast = ""
+  }, TOAST_DURATION)
+}
+
 
 // 글자 입력
 const pushLetter = (char:string) => {
   const letters = getCurrentLetters()
-  if (letters.length >= MAX_WORD_COUNT) {
+  if (letters.length >= NUM_MAX_WORD_COUNT) {
     return
   }
 
@@ -67,18 +83,9 @@ const backspace = () => {
 }
 
 // 엔터
-let toast = ""
-
-const showToast = (text:string) => {
-  toast = text
-  setTimeout(() => {
-    toast = ""
-  }, 1000)
-}
-
 const enter = () => {
   const letters = getCurrentLetters()
-  if (letters.length < MAX_WORD_COUNT) {
+  if (letters.length < NUM_MAX_WORD_COUNT) {
     return
   }
 
@@ -87,6 +94,7 @@ const enter = () => {
   // check Not in word list
   if (!WORDS.includes(input)) {
     showToast("Not In word list")
+    allLetters_animate[currentStep] = "shake"
     return
   }
 
@@ -104,7 +112,7 @@ const enter = () => {
   // 다음 단계로 이동
   currentStep++
 
-  if (currentStep > MAX_WORD_COUNT) {
+  if (currentStep > NUM_MAX_WORD_COUNT) {
     setTimeout(() => end())
   }
 }
@@ -141,7 +149,7 @@ const onkeydown = (event) => {
   <div class="flex w(320~500) m(auto) pack uppercase">
     <div class="vbox gap(5)">
       {#each allLetters as row, step}
-        <div class="hbox gap(5)">
+        <div class="hbox gap(5) {allLetters_animate[step]}" on:animationend={() => allLetters_animate[step]=''}>
           {#each Array(5) as _, index}
             <div class="b(2/--color-tone-4) w(62) h(62) pack font(30) bold
             .absent:bg(--color-absent) .absent:c(#fff) .absent:b(none)
@@ -187,3 +195,61 @@ const onkeydown = (event) => {
 </svelte:head>
 
 <svelte:window on:keydown={onkeydown}/>
+
+
+<style>
+.shake {
+  animation-name:Shake;
+  animation-duration:600ms;
+}
+
+.bounce {
+  animation-name:Bounce;
+  animation-duration:1000ms;
+}
+
+@keyframes Bounce {
+  0%, 20% {
+    transform:translateY(0);
+  }
+  40% {
+    transform:translateY(-30px);
+  }
+  50% {
+    transform:translateY(5px);
+  }
+  60% {
+    transform:translateY(-15px);
+  }
+  80% {
+    transform:translateY(2px);
+  }
+  100% {
+    transform:translateY(0);
+  }
+}
+
+@keyframes Shake {
+  10%,
+  90% {
+    transform:translateX(-1px);
+  }
+
+  20%,
+  80% {
+    transform:translateX(2px);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform:translateX(-4px);
+  }
+
+  40%,
+  60% {
+    transform:translateX(4px);
+  }
+}
+
+</style>
