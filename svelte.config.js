@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from "@sveltejs/adapter-static"
 import preprocess from 'svelte-preprocess';
 import {adorableCSS} from "adorable-css/vite-plugin-adorable-css"
 
@@ -17,5 +17,9 @@ const config = {
 		}
 	}
 };
+
+if (process.env.NODE_ENV === "production") {
+  config.kit.paths = {base: "/wordle-svelte"}
+}
 
 export default config;
