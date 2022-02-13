@@ -53,18 +53,18 @@ const matchWordle = (s_answer:string, s_guess:string) => {
 
 // 토스트 팝업
 const TOAST_DURATION = 1500
+const TOAST_DURATION_LONG = 5000
 
 let toast = ""
 let timer:ReturnType<typeof setTimeout>
 
-const showToast = (text:string) => {
+const showToast = (text:string, duration = TOAST_DURATION) => {
   toast = text
   clearTimeout(timer)
   timer = setTimeout(() => {
     toast = ""
-  }, TOAST_DURATION)
+  }, duration)
 }
-
 
 // 글자 입력
 const pushLetter = (char:string) => {
@@ -73,7 +73,7 @@ const pushLetter = (char:string) => {
     return
   }
 
-  allLetters[currentStep] = [...letters, {char, type: ""}]
+  allLetters[currentStep] = [...letters, {char, type: "", animation: "pop"}]
 }
 
 // 백스페이스 - 글자삭제
@@ -118,7 +118,7 @@ const enter = () => {
 }
 
 const end = () => {
-  showToast("정답은 " + answer + " 입니다.")
+  showToast("정답은 " + answer + " 입니다.", TOAST_DURATION_LONG)
 }
 
 
@@ -155,6 +155,7 @@ const onkeydown = (event) => {
             .absent:bg(--color-absent) .absent:c(#fff) .absent:b(none)
             .correct:bg(--color-correct) .correct:c(#fff) .correct:b(none)
             .present:bg(--color-present) .present:c(#fff) .present:b(none)
+            {row[index]?.animation} .pop:b(2/--color-tone-1)
             {row[index]?.type}">{row[index]?.char ?? ''}</div>
           {/each}
         </div>
@@ -252,4 +253,50 @@ const onkeydown = (event) => {
   }
 }
 
+.pop {
+  animation-name:PopIn;
+  animation-duration:100ms;
+}
+
+@keyframes PopIn {
+  from {
+    transform:scale(0.8);
+    opacity:0;
+  }
+
+  40% {
+    transform:scale(1.1);
+    opacity:1;
+  }
+}
+
+.tile[data-animation='flip-in'] {
+  animation-name:FlipIn;
+  animation-duration:250ms;
+  animation-timing-function:ease-in;
+}
+
+@keyframes FlipIn {
+  0% {
+    transform:rotateX(0);
+  }
+  100% {
+    transform:rotateX(-90deg);
+  }
+}
+
+.tile[data-animation='flip-out'] {
+  animation-name:FlipOut;
+  animation-duration:250ms;
+  animation-timing-function:ease-in;
+}
+
+@keyframes FlipOut {
+  0% {
+    transform:rotateX(-90deg);
+  }
+  100% {
+    transform:rotateX(0);
+  }
+}
 </style>

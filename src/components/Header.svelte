@@ -14,7 +14,7 @@ const settings = () => {}
   </div>
 
   <div class="flex(3) clip">
-    <h1 class="font(36) 700 nowrap text-center">WORDLE</h1>
+    <h1 class="font(32/-/2) 700 nowrap text-center">WORDLE</h1>
   </div>
 
   <div class="hbox(right+fill) flex">
