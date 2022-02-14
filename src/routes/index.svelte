@@ -1,6 +1,7 @@
 <script lang="ts">
 import "@adorable.css"
 import "../style.css"
+import {tick} from "svelte"
 
 import {fade} from "svelte/transition"
 import Header from "../components/Header.svelte"
@@ -120,8 +121,9 @@ const enter = () => {
   currentState = State.IS_ANIMATING
   matched.forEach(({char, type}, i) => {
     const step = currentStep
-    setTimeout(() => {
+    setTimeout(async () => {
       allLetters[step][i] = {char, type: "pop", animation: "flip-in"}
+      await tick()
       setTimeout(() => allLetters[step][i] = {char, type, animation: "flip-out"}, 250)
     }, 250 * i)
   })
